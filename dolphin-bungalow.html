@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#123634">
-<title>Dolphin Bungalow</title>
+<title>Dolphin Bungalow - Khách</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <script>tailwind.config={theme:{extend:{fontFamily:{serif:['Fraunces','serif'],sans:['Nunito','sans-serif'],mono:['JetBrains Mono','monospace']},colors:{teal:{50:'#effaf6',100:'#d8f3ea',200:'#bfe9dc',300:'#98dccb',400:'#6cc7b3',500:'#4aa896',600:'#37897b',700:'#2a6e65',800:'#215852',900:'#194743',950:'#123634'},gold:{400:'#FBD77A',500:'#F4B842',600:'#D99A2B'}}}}}</script>
@@ -622,7 +622,6 @@ window.changeRole=function(r){state.currentRole=r;['customer','reception','bunga
 window.getUsage=function(tableName){let f=0,fr=0,d=0;state.orders.forEach(o=>{if(o.table===tableName&&o.status!=='cancelled'){o.items.forEach(it=>{const c=it.cancelledQty||(it.cancelled?it.qty:0);const aq=it.qty-c;if(aq>0){if(it.id==='b-m-1')f+=aq;if(it.id==='b-m-2')fr+=aq;if(it.id.startsWith('b-m-')&&it.id!=='b-m-1'&&it.id!=='b-m-2')d+=aq;}});}});return{fries:f,fruits:fr,drinks:d};};
 window.getCurrentUsage=function(){const u=window.getUsage(state.selectedTable);for(let id in state.cart){if(id==='b-m-1')u.fries+=state.cart[id];if(id==='b-m-2')u.fruits+=state.cart[id];if(id.startsWith('b-m-')&&id!=='b-m-1'&&id!=='b-m-2')u.drinks+=state.cart[id];}return u;};
 
-// ✅ BỔ SUNG: Chặn thêm món nếu bàn chưa kích hoạt
 window.updateCart=function(id,delta){
   if(!window.isOrderingAllowed())return;
   if(!window.isTableActivated()){window.notifyNotActivated();return;}
@@ -644,7 +643,6 @@ window.toggleCartModal=(s)=>{const m=document.getElementById('modal-cart');if(s)
 window.renderCartModalItems=function(){const t=TR[state.currentLanguage]||TR['VI'];document.getElementById('lbl-confirm-title').innerHTML='<span class="icon-badge">📝</span> '+t.confirmOrderTitle;document.getElementById('lbl-btn-clear').innerText=t.clearCartBtn;document.getElementById('send-btn-label').innerText=t.sendToKitchenBtn;document.getElementById('lbl-notes').innerText=t.notesPlaceholder;const list=document.getElementById('cart-items-list');list.innerHTML=Object.entries(state.cart).map(([id,q])=>{const i=MENU.find(x=>x.id===id);return`<div class="flex justify-between items-center bg-teal-900/60 p-3 rounded-xl border border-teal-700/50 mb-2"><span class="text-[12.5px] md:text-base font-bold text-white flex-1 mr-2">${i.name[state.currentLanguage]||i.name['VI']}</span><div class="flex items-center gap-0.5 bg-teal-950/80 rounded-xl p-1 border border-teal-700/50"><button onclick="updateCart('${id}', -1)" class="w-8 h-8 flex items-center justify-center text-teal-400">➖</button><span class="text-gold-400 font-black text-[13px] px-2 w-7 text-center tabular">${q}</span><button onclick="updateCart('${id}', 1)" class="w-8 h-8 flex items-center justify-center text-gold-400">➕</button></div></div>`;}).join('');};
 window.clearCart=()=>{state.cart={};window.toggleCartModal(false);window.renderCustomer();};
 
-// ✅ BỔ SUNG: Chặn gửi đơn nếu bàn chưa kích hoạt
 window.sendOrderOnline=async function(b){
   const t=TR[state.currentLanguage]||TR['VI'];
   if(!window.isTableActivated()){window.notifyNotActivated();return;}
@@ -661,7 +659,15 @@ window.sendOrderOnline=async function(b){
   try{if(db)await addDoc(collection(db,COL_ORDERS),{table:state.selectedTable,time:window.getVNTime().timeString,timestamp:Date.now(),items:ci,status:'pending',notes:document.getElementById('customer-notes-input').value});sessionStorage.setItem('lastOrderTime_'+state.selectedTable,Date.now());state.cart={};window.toggleCartModal(false);window.showToast(t.toastOrderSuccess,'🚀');}catch(e){}
   finally{state.isSending=false;document.getElementById('send-btn-spinner').classList.add('hidden');b.disabled=false;renderAll();}
 };
-window.callStaffOnline=async function(){const t=TR[state.currentLanguage]||TR['VI'];if(!window.isOrderingAllowed()){window.showToast(t.toastOutHours,'🚫');return;}if(state.isCallingStaff){window.showToast(t.toastStaffComing,'🏃');return;}state.isCallingStaff=true;const ct=window.getVNTime().timeString;try{if(db)await addDoc(collection(db,COL_CALLS),{table:state.selectedTable,time:ct,timestamp:Date.now(),status:'pending'});window.showToast(t.toastCallStaff.replace('{time}',ct),'🛎️');setTimeout(()=>state.isCallingStaff=false,30000);}catch(e){state.isCallingStaff=false;}};
+window.callStaffOnline=async function(){
+  const t=TR[state.currentLanguage]||TR['VI'];
+  if(!window.isTableActivated()){window.notifyNotActivated();return;} // ✅ CHẶN GỌI NẾU CHƯA KÍCH HOẠT
+  if(!window.isOrderingAllowed()){window.showToast(t.toastOutHours,'🚫');return;}
+  if(state.isCallingStaff){window.showToast(t.toastStaffComing,'🏃');return;}
+  state.isCallingStaff=true;
+  const ct=window.getVNTime().timeString;
+  try{if(db)await addDoc(collection(db,COL_CALLS),{table:state.selectedTable,time:ct,timestamp:Date.now(),status:'pending'});window.showToast(t.toastCallStaff.replace('{time}',ct),'🛎️');setTimeout(()=>state.isCallingStaff=false,30000);}catch(e){state.isCallingStaff=false;}
+};
 window.resolveCallOnline=async(id)=>{try{if(db)await updateDoc(doc(db,COL_CALLS,id),{status:'resolved',resolvedBy:window.getStaffName()||'N/A'});}catch(e){}};
 
 /* ===== TRANSFER BUNGALOW ===== */
