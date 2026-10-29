@@ -145,14 +145,6 @@ body.cocktail-zone #cocktail-cursor{opacity:1;transform:translate(-50%,-50%) sca
 #bellTestMenu { display: none !important; }
 div:has(> #btn-role-customer) { display: none !important; }
 </style>
-<script src="theme-system.js?v=guest1" defer></script>
-<style id="guest-child-theme">
-body[data-theme="dark"]{background:#000!important}
-body[data-theme="light"]{background:#eff6f4!important;color:#103b3c!important}
-body[data-theme="light"] :is(.glass-card,.glass,.card,.panel,.modal-content){background:#fff!important;color:#103b3c!important;border-color:#a1d2d0!important}
-body[data-theme="gray"]{background:#23272b!important;color:#f0f1f3!important}
-body[data-theme="gray"] :is(.glass-card,.glass,.card,.panel,.modal-content){background:#343a40!important;color:#f0f1f3!important;border-color:#69747c!important}
-</style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-gold-500 selection:text-black relative z-0">
 
@@ -290,8 +282,26 @@ body[data-theme="gray"] :is(.glass-card,.glass,.card,.panel,.modal-content){back
   </div>
   <div class="flex items-center gap-2">
     <div class="relative">
-      
-      
+      <button id="sound-toggle" onclick="toggleSoundMenu(event)" class="sound-toggle w-9 h-9 rounded-lg bg-teal-900/60 border border-teal-700/50 flex items-center justify-center text-teal-300 hover:text-white transition-colors text-sm" title="Nhạc nền Lounge">🔇</button>
+      <div id="sound-menu" class="sound-menu hidden-pop">
+        <div class="menu-title">🎹 Dolphin Lounge Ballad</div>
+        <button data-mode="off" onclick="setSoundMode('off')" class="mode-btn"><span class="icon">🔇</span><div class="meta"><span class="name">Tắt âm thanh</span><span class="sub">Silent Mode</span></div></button>
+        <div class="divider"></div>
+        <button data-mode="t1" onclick="setSoundMode('t1')" class="mode-btn"><span class="icon">🎹</span><div class="meta"><span class="name">Rhodes & Strings</span><span class="sub">Full Ballad · 68 BPM</span></div></button>
+        <button data-mode="t2" onclick="setSoundMode('t2')" class="mode-btn"><span class="icon">🎼</span><div class="meta"><span class="name">Piano Solo</span><span class="sub">Pure Piano · 70 BPM</span></div></button>
+        <button data-mode="t3" onclick="setSoundMode('t3')" class="mode-btn"><span class="icon">🌫️</span><div class="meta"><span class="name">Ambient Wash</span><span class="sub">Ethereal · 64 BPM</span></div></button>
+        <button data-mode="t4" onclick="setSoundMode('t4')" class="mode-btn"><span class="icon">🎸</span><div class="meta"><span class="name">Soft Guitar</span><span class="sub">Mellow · 72 BPM</span></div></button>
+        <button data-mode="t5" onclick="setSoundMode('t5')" class="mode-btn"><span class="icon">🌙</span><div class="meta"><span class="name">Late Night</span><span class="sub">Slow & Deep · 62 BPM</span></div></button>
+        <div class="divider"></div>
+        <button data-mode="loop" onclick="setSoundMode('loop')" class="mode-btn"><span class="icon">🔁</span><div class="meta"><span class="name">Auto Loop</span><span class="sub">Cycle 5 Arrangements</span></div></button>
+        <div class="divider"></div>
+        <div class="vol-wrap">
+          <div class="flex justify-between items-center mb-1.5 text-[9px] text-teal-300 font-black uppercase tracking-widest">
+            <span>Âm lượng</span><span id="vol-pct">30%</span>
+          </div>
+          <input id="vol-slider" type="range" min="0" max="100" value="30" oninput="setAmbientVolume(this.value)">
+        </div>
+      </div>
     </div>
     <div class="flex bg-teal-900/50 p-1 rounded-xl border border-teal-800/50 gap-1 flex-wrap backdrop-blur-sm">
       <button onclick="changeRole('customer')" id="btn-role-customer" class="px-3 py-1.5 rounded-lg font-black transition-all text-[11px] bg-gradient-to-r from-gold-400 to-gold-500 text-black shadow-lg shadow-gold-500/30">🧑‍🍳 Khách</button>
@@ -1246,11 +1256,9 @@ const SOUND_META = {
 };
 
 window.setSoundMode = function(mode) {
-  // Lounge background music is managed by the Guest landing, not this child frame.
-  mode = 'off'; Ambient.setMode('off');
+  Ambient.setMode(mode);
   const meta = SOUND_META[mode] || SOUND_META.off;
   const btn = document.getElementById('sound-toggle');
-  if(!btn)return;
   btn.innerText = meta.icon;
   btn.classList.toggle('active', mode !== 'off');
   document.querySelectorAll('#sound-menu .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
@@ -1794,15 +1802,14 @@ window.onload = function() {
     state.tableSelected = true;
   }
 
-  const savedMode = 'off';
+  const savedMode = localStorage.getItem('dolphinSoundMode') || 'off';
   const savedVol = localStorage.getItem('dolphinSoundVolume') || '30';
   document.getElementById('vol-slider').value = savedVol;
   document.getElementById('vol-pct').innerText = savedVol + '%';
-  Ambient.volume = parseInt(savedVol)/100; Ambient.enabled=false;
+  Ambient.volume = parseInt(savedVol)/100;
 
   const meta = SOUND_META[savedMode] || SOUND_META.off;
   const btn = document.getElementById('sound-toggle');
-  if(!btn)return;
   btn.innerText = meta.icon;
   btn.classList.toggle('active', savedMode !== 'off');
   document.querySelectorAll('#sound-menu .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === savedMode));
@@ -2967,6 +2974,7 @@ window.renderAll = function(){
 };
 </script>
 <script>
+<script>
 /* ============ AUTO-PATCH v2: Ẩn chức năng nhân viên ============ */
 (function(){
   var tries = 0;
@@ -3012,6 +3020,7 @@ window.renderAll = function(){
     if (tries > 30) clearInterval(iv);
   }, 200);
 })();
+</script>
 </script>
 </body>
 </html>
