@@ -428,6 +428,7 @@ body[data-theme="gray"] .area-card{background:#343a40!important}
     if (!url) return;
 
     transitionLock = true;
+    try{ window.DolphinSound?.pause?.(); }catch(e){}
 
     // Push hash cho nút Back
     if (location.hash !== '#' + area) {
@@ -477,6 +478,7 @@ body[data-theme="gray"] .area-card{background:#343a40!important}
   window.goHome = function(){
     if (transitionLock) return;
     transitionLock = true;
+    try{ window.DolphinSound?.resume?.(); }catch(e){}
 
     if (location.hash) {
       try { history.pushState({}, '', location.pathname + location.search); }
