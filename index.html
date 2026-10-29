@@ -186,6 +186,22 @@ body{background:#123634;color:#fff;font-family:'Nunito',sans-serif}
   .area-icon{font-size:2rem;margin-bottom:.4rem}
 }
 </style>
+<style id="guest-clock-theme-style">
+#guestClock{margin:14px auto 8px;display:flex;align-items:center;justify-content:center;gap:12px;width:min(94%,480px);border-radius:18px;border:1px solid var(--theme-border,rgba(244,184,66,.4));padding:10px 14px;background:var(--mode-surface,rgba(10,30,30,.75));color:var(--mode-text,#fff);box-shadow:0 6px 22px #0003}
+#guestClockTime{font:800 clamp(22px,6vw,32px) ui-monospace,monospace;letter-spacing:1px}
+#guestClockDate{font:600 10px Nunito,sans-serif;opacity:.85}
+#guestClock button,#guestThemeControls button{cursor:pointer;border:1px solid var(--theme-border,rgba(244,184,66,.4));border-radius:10px;background:var(--mode-surface,#122f30);color:var(--mode-text,#fff);padding:8px 11px;font-weight:800}
+#guestClock #clockSoundBtn{font-size:19px}
+#guestThemeControls{display:flex;gap:7px;justify-content:center;margin:5px auto 12px}
+#guestThemeControls button[aria-pressed="true"]{background:var(--theme-accent,#fbd77a);color:var(--theme-bg2,#000)}
+body[data-theme]{background:var(--theme-bg2)!important;color:var(--mode-text)!important}
+body[data-theme] #landing{background:var(--theme-bg2)!important}
+body[data-theme] .area-card{border-color:var(--theme-border-soft)!important}
+body[data-theme="light"] .area-card{background:#fff!important;color:#103b3c!important}
+body[data-theme="gray"] .area-card{background:#343a40!important}
+</style>
+<script src="theme-system.js?v=guest1" defer></script>
+<script src="dolphin-soundscape.js?v=guest1" defer></script>
 </head>
 <body>
 
@@ -407,9 +423,12 @@ body{background:#123634;color:#fff;font-family:'Nunito',sans-serif}
   function doOpenApp(area){
     if (transitionLock) return;
     var url = APP_MAP[area];
+    var activeTheme = window.ThemeSystem?.getCurrent?.() || 'dark';
+    url += (url.indexOf('?')<0?'?':'&')+'theme='+encodeURIComponent(activeTheme);
     if (!url) return;
 
     transitionLock = true;
+    try{ window.DolphinSound?.pause?.(); }catch(e){}
 
     // Push hash cho nút Back
     if (location.hash !== '#' + area) {
@@ -459,6 +478,7 @@ body{background:#123634;color:#fff;font-family:'Nunito',sans-serif}
   window.goHome = function(){
     if (transitionLock) return;
     transitionLock = true;
+    try{ window.DolphinSound?.resume?.(); }catch(e){}
 
     if (location.hash) {
       try { history.pushState({}, '', location.pathname + location.search); }
@@ -515,5 +535,27 @@ body{background:#123634;color:#fff;font-family:'Nunito',sans-serif}
 
 })();
 </script>
-</body>
+<script>
+(function(){
+ function boot(){
+  const landing=document.getElementById('landing');
+  if(!landing)return;
+  const box=document.createElement('div');
+  box.innerHTML='<div id="guestClock" role="group" aria-label="Đồng hồ Việt Nam"><span>🕒</span><div><div id="guestClockTime">--:--:--</div><div id="guestClockDate"></div></div><button type="button" id="clockSoundBtn" title="Bật / tắt nhạc nền" aria-label="Bật hoặc tắt nhạc">🔇</button></div><div id="guestThemeControls" role="group" aria-label="Chế độ giao diện"><button type="button" data-mode="dark">Dark</button><button type="button" data-mode="light">Light</button><button type="button" data-mode="gray">Gray</button></div>';
+  const target=landing.querySelector('.area-grid')||landing.firstElementChild;
+  if(target)target.parentElement.insertBefore(box,target);else landing.appendChild(box);
+  function tick(){
+   const dt=new Date();const time=new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(dt);
+   const date=new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}).format(dt);
+   document.getElementById('guestClockTime').textContent=time;document.getElementById('guestClockDate').textContent=date;
+  }tick();setInterval(tick,1000);
+  const music=document.getElementById('clockSoundBtn');
+  music.addEventListener('click',function(){const api=window.DolphinSound;if(api&&api.toggle)api.toggle();else if(api&&api.toggleEnabled)api.toggleEnabled();});
+  function syncModes(){const current=window.ThemeSystem?.getCurrent?.()||'dark';document.querySelectorAll('#guestThemeControls button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===current)));}
+  document.querySelectorAll('#guestThemeControls button').forEach(b=>b.addEventListener('click',function(){window.ThemeSystem?.setTheme?.(b.dataset.mode);syncModes();}));
+  window.addEventListener('dolphin-theme-changed',syncModes);setTimeout(syncModes,100);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script></body>
 </html>
