@@ -74,7 +74,7 @@
   ];
 
   // ═══════════════════════ CONFIG ═══════════════════════
-  var SOUND_BASE     = 'https://gianghamk-hash.github.io/DolphinApp/sounds/';
+  var SOUND_BASE     = 'https://raw.githubusercontent.com/gianghamk-hash/DolphinApp/main/sounds/';
   var MANIFEST_URL   = SOUND_BASE + 'manifest.json';
   var CACHE_KEY      = 'dolphin_sound_tracks_cache_v2';
   var CACHE_TTL      = 24 * 60 * 60 * 1000;
