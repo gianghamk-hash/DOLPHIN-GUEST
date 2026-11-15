@@ -148,6 +148,7 @@ input,textarea,select{color-scheme:dark}
 input::placeholder,textarea::placeholder{color:#a5b4c5;opacity:1}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #FBD77A;outline-offset:3px}
 </style>
+<style>.bungalow-menu-photo{display:block;width:100%;aspect-ratio:1;background-image:url("./assets/bungalow-menu-cans-v2.svg");background-size:500% 200%;background-repeat:no-repeat;border-radius:12px;margin-bottom:12px;background-color:#050608}</style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-gold-500 selection:text-black relative z-0">
 
@@ -762,7 +763,7 @@ window.renderCustomer=function(){
             )
           )
         );
-      return `<div class="glass-card menu-card flex flex-col justify-between ${q>0?'border-gold-500/60':'border-teal-700/30'}"><div class="pr-1 break-words w-full mb-3"><h3 class="text-white font-bold leading-snug">${nm}</h3>${state.currentLanguage!=='VI'?`<span class="text-teal-300 block mt-1 text-[10.5px] opacity-80">${it.name['VI']}</span>`:''}</div><div class="flex justify-end items-end w-full mt-auto"><div class="w-full sm:w-auto">${btnHtml}</div></div></div>`;
+      return `<div class="glass-card menu-card flex flex-col justify-between ${q>0?'border-gold-500/60':'border-teal-700/30'}"><div class="pr-1 break-words w-full mb-3"><span class="bungalow-menu-photo" role="img" aria-label="${nm}" style="background-position:${((Number(it.id.split("-").pop())-1)%5)*25}% ${Number(it.id.split("-").pop())<=5?0:100}%"></span><h3 class="text-white font-bold leading-snug">${nm}</h3>${state.currentLanguage!=='VI'?`<span class="text-teal-300 block mt-1 text-[10.5px] opacity-80">${it.name['VI']}</span>`:''}</div><div class="flex justify-end items-end w-full mt-auto"><div class="w-full sm:w-auto">${btnHtml}</div></div></div>`;
     }).join('');
   }
   const fc=document.getElementById('floating-cart');
